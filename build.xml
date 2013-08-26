@@ -1,0 +1,142 @@
+<project name="agents" default="targets" basedir=".">
+
+  <!-- set global properties for this build -->
+    <property name="src" location="src"/>
+    <property name="build" location="build"/>
+    <property name="resource" location="resource"/>
+    <property name="dist" location="dist"/>
+    <property name="doc" location="doc"/>
+    <property name="test" location="test"/>
+
+    <path id="project.path">
+        <pathelement location="${build}"/>
+    </path>
+
+    <!-- Print out a listing of the most important ant targets -->
+    <target name="targets">
+               <echo>
+compile             Compile the source code
+test                Compiles and tests the source code by running junit tests
+run                 Run the simple command-line agents program
+run.gui		    Run the agents program using a gui
+javadoc             Create javadoc of the source code
+dist                Create a full distribution of the project including all the binary jars, source code, and ant files
+clean               Delete all the compiled files
+        </echo>
+    </target>
+
+    <!-- A basic setup target -->
+    <target name="init">
+        <tstamp/>
+        <mkdir dir="${build}"/>
+    </target>
+
+    <!-- Compiles the source files and copies all relevant files to the build directory -->
+    <target name="compile" depends="init"
+        description="compile the source ">
+<!--
+        <copy todir="${build}/restaurant/util">
+            <fileset dir="${resource}">
+                <include name="**/*.png"/>
+                <include name="**/*.gif"/>
+            </fileset>
+        </copy>
+-->
+        <javac srcdir="${src}" classpathref="project.path" destdir="${build}" debug="true">
+		<compilerarg value="-Xlint:unchecked"/>
+	</javac>
+    </target>
+
+    <!-- Here we compile the source and test it using junit -->
+    <target name="test" depends="compile">
+        <mkdir dir="${test}"/>
+
+        <junit printsummary="withOutAndErr" haltonfailure="yes">
+            <classpath refid="project.path"/>
+            <formatter type="xml"/>
+            <test name="restaurant.test.RestaurantTest" todir="${test}"/>
+        </junit>
+
+        <mkdir dir="${test}/html"/>
+        <junitreport todir="${test}/html">
+            <fileset dir="${test}">
+                <include name="TEST-*.xml"/>
+            </fileset>
+            <report format="frames" todir="${test}/html"/>
+        </junitreport>
+    </target>
+
+
+    <!-- This is where the ant task that runs the GUI should go-->
+    <target name="run.gui" depends="compile">
+        <java classname="restaurant.gui.RestaurantGui" classpathref="project.path" fork="true">
+            <arg value="gui"/>
+        </java>
+    </target>
+
+    <!-- This is the ant task that runs the basic command-line version of the agents -->
+    <target name="run" depends="compile">
+        <java classname="restaurant.Main" classpathref="project.path" fork="true"/>
+    </target>
+
+    <!-- Generates the javadoc for all the packages -->
+    <target name="javadoc" depends="compile">
+        <mkdir dir="${doc}/javadoc"/>
+        <javadoc destdir="${doc}/javadoc">
+            <classpath refid="project.path" />
+            <packageset dir="${src}" defaultexcludes="yes">
+                <include name="agent"/>
+                <include name="restaurant/gui"/>
+                <include name="restaurant"/>
+                <include name="restaurant/gui/dataModel"/>
+                <include name="restaurant/gui/manager"/>
+                <include name="restaurant/gui/manager/configTree"/>
+                <include name="restaurant/gui/manager/cook"/>
+                <include name="restaurant/gui/manager/customer"/>
+                <include name="restaurant/gui/manager/waiter"/>
+                <include name="restaurant/resource"/>
+            </packageset>
+        </javadoc>
+    </target>
+
+    <!-- Create a nice package of all the source files and ant build files -->
+    <target name="submit">
+        <input message="Enter the version number:" addproperty="version"/>
+
+        <antcall target="clean"/>
+
+        <mkdir dir="${dist}"/>
+        <copy todir="${dist}/src">
+            <fileset dir="${src}"/>
+        </copy>
+
+        <mkdir dir="${dist}/resource"/>
+        <copy todir="${dist}/resource">
+            <fileset dir="${resource}"/>
+        </copy>
+
+        <mkdir dir="${dist}/doc"/>
+        <copy todir="${dist}/doc">
+            <fileset dir="${doc}"/>
+        </copy>
+
+        <copy todir="${dist}" file="build.xml"/>
+
+
+        <zip destfile="agents${version}.zip">
+            <zipfileset dir="${dist}" prefix="agents${version}"/>
+        </zip>
+
+        <delete dir="${dist}"/>
+    </target>
+
+    <!-- Cleans your environment.. deletes all generated files -->
+    <target name="clean">
+        <delete dir="${build}"/>
+        <delete dir="${doc}/javadoc"/>
+        <delete dir="${test}"/>
+        <delete>
+            <fileset dir="." includes="agents*.zip"/>
+        </delete>
+    </target>
+</project>
