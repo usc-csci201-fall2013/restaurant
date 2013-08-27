@@ -1,6 +1,21 @@
+# Compiled files
 *.class
 
-# Package Files #
+# Package Files
 *.jar
 *.war
 *.ear
+
+# Editor Temporary Files
+.*.sw[a-z]
+*~
+\#*\#
+*.tmp
+*.bak
+
+# OS generated files
+Thumbs.db
+Desktop.ini
+.DS_Store
+.Trashes
+.Trash
